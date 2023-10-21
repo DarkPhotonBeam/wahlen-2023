@@ -14,9 +14,16 @@ app.use(bodyParser.json());
 const PORT = process.env.PORT ?? 8080;
 
 app.get('/api/robing', (req, res) => {
-    const data = JSON.parse(fs.readFileSync(path.resolve(path.join(__dirname, '..', 'data', 'data.json')), 'utf8'));
-
-    res.json(data);
+    try {
+        const data = JSON.parse(fs.readFileSync(path.resolve(path.join(__dirname, '..', 'data', 'data.json')), 'utf8'));
+        res.json(data);
+    } catch (e) {
+        res.json({
+            status: 'fail',
+            message: 'rip bozo',
+            fail: true,
+        });
+    }
 });
 
 app.listen(PORT, () => {
