@@ -63,6 +63,7 @@ table, thead, tbody, th, td {
 td, th {
   padding: .125rem .25rem;
   border: none;
+  white-space: nowrap;
 }
 
 tr {
