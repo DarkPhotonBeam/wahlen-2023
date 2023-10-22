@@ -13,7 +13,7 @@ body {
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  padding: 4rem 4rem;
+  padding: 4rem .25rem;
 }
 
 #root {
@@ -47,7 +47,26 @@ h1, h2, h3, p, details {
 }
 
 tbody tr:nth-child(odd) {
-  background: #111;
+  background: #222;
+}
+
+details {
+  overflow-x: scroll;
+}
+
+table, thead, tbody, th, td {
+  border-collapse: collapse;
+  border: none;
+}
+
+
+td, th {
+  padding: .125rem .25rem;
+  border: none;
+}
+
+tr {
+  border: none;
 }
 
 .summary {
@@ -83,4 +102,12 @@ button {
   > li:nth-child(odd) {
     background: #111;
   }
+}
+
+td.red {
+  color: #d72a44;
+}
+
+td.green {
+  color: #2aba26;
 }

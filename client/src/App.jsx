@@ -141,13 +141,42 @@ function Nationalrat({vorlage}) {
             </details>
             <details>
                 <summary>Ausgezählte Gemeinden {vorlage.gemeinden.filter(gemeinde => gemeinde.resultat.listenStimmenTotal).length}/{vorlage.gemeinden.length}</summary>
-                <ul className={'gemeinden'}>
+                {/*<ul className={'gemeinden'}>*/}
+                {/*    {*/}
+                {/*        vorlage.gemeinden.filter(gemeinde => gemeinde.resultat.listenStimmenTotal).map((gemeinde, i) => (*/}
+                {/*            <li key={i}>{gemeinde.geoLevelname}</li>*/}
+                {/*        ))*/}
+                {/*    }*/}
+                {/*</ul>*/}
+                <SmartTable data={vorlage.gemeinden.filter(gemeinde => gemeinde.resultat.listenStimmenTotal).map(gemeinde => {
+                    return {
+                        name: gemeinde.geoLevelname,
+                        wahlbeteiligungInProzent: gemeinde.resultat.wahlbeteiligungInProzent,
+                        wahlbeteiligungVeraenderung: gemeinde.resultat.wahlbeteiligungVeraenderung
+                    };
+                })} fields={[
                     {
-                        vorlage.gemeinden.filter(gemeinde => gemeinde.resultat.listenStimmenTotal).map((gemeinde, i) => (
-                            <li key={i}>{gemeinde.geoLevelname}</li>
-                        ))
-                    }
-                </ul>
+                        name: "name",
+                        label: "Gemeinde",
+                        type: 'string',
+                        defaultDirection: 1,
+                    },
+                    {
+                        name: "wahlbeteiligungInProzent",
+                        label: "Wahlbeteiligung",
+                        type: 'number',
+                        defaultDirection: -1,
+                        unit: '%'
+                    },
+                    {
+                        name: "wahlbeteiligungVeraenderung",
+                        label: "Wahlbeteiligung Diff.",
+                        type: 'number',
+                        defaultDirection: -1,
+                        unit: '%',
+                        conditionalStyling: true,
+                    },
+                ]} />
             </details>
         </div>
     );
@@ -201,6 +230,7 @@ function SmartTable({data, fields}) {
                 return orderBy.defaultDirection * -1;
             });
         }
+        console.log(_data);
         setOrderedData(_data);
     }, [data, fields, orderBy]);
 
@@ -222,7 +252,7 @@ function SmartTable({data, fields}) {
                     <tr key={i}>
                         {
                             fields.map((field, i) => (
-                                <td key={i}>{field.type === 'number' ? ((field.parseInt ? parseInt(row[field.name]) : row[field.name]).toFixed(field.toFixed ?? 0)) : row[field.name]}</td>
+                                <td key={i} className={field.conditionalStyling && field.type === 'number' ? (parseFloat(row[field.name]) < 0 ? 'red' : 'green') : ''}>{field.type === 'number' ? ((field.parseInt ? parseInt(row[field.name]) : row[field.name]).toFixed(field.toFixed ?? 0)) : row[field.name]}{field.unit ?? ''}</td>
                             ))
                         }
                     </tr>
