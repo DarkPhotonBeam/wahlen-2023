@@ -248,7 +248,7 @@ function Nationalrat({vorlage}) {
 }
 
 // field: {label: string, name: string, type: 'number' | 'string' | 'computed', defaultDirection: -1 | 1}
-function SmartTable({data, fields, defaultFieldIndex = 0, hideHead = true, noStripes = false}) {
+function SmartTable({data, fields, defaultFieldIndex = 0, hideHead = false, noStripes = false}) {
     const [orderedData, setOrderedData] = useState([]);
     const [orderBy, setOrderBy] = useState(fields[defaultFieldIndex]);
 
