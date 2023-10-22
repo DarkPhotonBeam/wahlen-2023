@@ -7,11 +7,20 @@ const path = require("path");
 dotenv.config();
 
 const app = express();
-
 app.use(cors());
 app.use(bodyParser.json());
 
+
 const PORT = process.env.PORT ?? 8080;
+
+const indexPath = path.resolve(path.join(__dirname, '..', 'client', 'dist'));
+app.use('/', express.static(indexPath));
+console.log(indexPath);
+const assetsPath = path.resolve(path.join(__dirname, '..', 'client', 'dist', 'assets'));
+console.log(assetsPath);
+app.use('/assets', express.static(assetsPath));
+
+
 
 app.get('/api/robing', (req, res) => {
     try {
