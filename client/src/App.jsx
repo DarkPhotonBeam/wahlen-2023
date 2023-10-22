@@ -186,39 +186,67 @@ function Nationalrat({vorlage}) {
                         details: {
                             children: (field, row, i) => {
                                 const parteiNummer = row.listeNummer;
-                                const candidates = vorlage.resultat.kandidaten.filter(candidate => candidate.listeNummer == parteiNummer);
-                                return <SmartTable data={candidates} fields={[
-                                    {
-                                        name: 'kandidatNummer',
-                                        label: '#',
-                                        type: 'string',
-                                        defaultDirection: 1,
-                                    },
-                                    {
-                                        name: 'vorname',
-                                        label: 'Vorname',
-                                        type: "string",
-                                        defaultDirection: 1,
-                                    },
-                                    {
-                                        name: 'nachname',
-                                        label: 'Nachname',
-                                        type: "string",
-                                        defaultDirection: 1,
-                                    },
-                                    {
-                                        name: 'geburtsjahr',
-                                        label: 'Geburtsjahr',
-                                        type: "string",
-                                        defaultDirection: -1,
-                                    },
-                                    {
-                                        name: 'stimmen',
-                                        label: 'Stimmen',
-                                        type: "number",
-                                        defaultDirection: -1,
+                                let parteiName = "";
+                                const candidates = vorlage.resultat.kandidaten.filter(candidate => {
+                                    if (candidate.listeNummer === parteiNummer) {
+                                        parteiName = candidate.listeCode;
+                                        return true;
                                     }
-                                ]} />;
+                                    return false;
+                                }).map((candidate, i) => {
+                                    return {
+                                        kandidatNummer: candidate.kandidatNummer,
+                                        vorname: candidate.vorname,
+                                        nachname: candidate.nachname,
+                                        geburtsjahr: candidate.geburtsjahr,
+                                        stimmen: candidate.stimmen,
+                                        diff: parseInt(candidate.kandidatNummer.split(".")[1])-candidate.rangInListeInWahlkreis,
+                                    };
+                                });
+                                return (
+                                    <>
+                                        <h1>Liste {parteiNummer} - {parteiName}</h1>
+                                        <SmartTable data={candidates} fields={[
+                                            {
+                                                name: 'kandidatNummer',
+                                                label: '#',
+                                                type: 'string',
+                                                defaultDirection: 1,
+                                            },
+                                            {
+                                                name: 'vorname',
+                                                label: 'Vorname',
+                                                type: "string",
+                                                defaultDirection: 1,
+                                            },
+                                            {
+                                                name: 'nachname',
+                                                label: 'Nachname',
+                                                type: "string",
+                                                defaultDirection: 1,
+                                            },
+                                            {
+                                                name: 'geburtsjahr',
+                                                label: 'Geburtsjahr',
+                                                type: "string",
+                                                defaultDirection: -1,
+                                            },
+                                            {
+                                                name: 'stimmen',
+                                                label: 'Stimmen',
+                                                type: "number",
+                                                defaultDirection: -1,
+                                            },
+                                            {
+                                                name: 'diff',
+                                                label: 'Differenz',
+                                                type: "number",
+                                                defaultDirection: -1,
+                                                conditionalStyling: true,
+                                            }
+                                        ]} />
+                                    </>
+                                );
                             }
                         }
                     },
@@ -289,12 +317,20 @@ function Nationalrat({vorlage}) {
     );
 }
 
-function Details({show = false, setShow, children}) {
+function Details({show = false, setShow, children, fieldKey}) {
     const close = (e) => {
         e.stopPropagation();
         e.preventDefault();
-        setShow(false);
+        setShow(fieldKey, false);
     };
+
+    useEffect(() => {
+        if (show) {
+            document.body.style.overflowY = 'hidden';
+        } else {
+            document.body.style.overflowY = 'auto';
+        }
+    }, [show]);
 
     if (show === false) return '';
 
@@ -362,23 +398,22 @@ function SmartTable({data, fields, defaultFieldIndex = 0, hideHead = false, noSt
 }
 
 function SmartTableRow({row, fields}) {
-    const [showDetails, setShowDetails] = useState(false);
+    const [showDetails, setShowDetails] = useState({});
 
-    const setShow = (val) => {
-        console.log("huh" + val);
-        setShowDetails(val);
-        setShowDetails(false);
-        console.log(showDetails);
+    const setShow = (key, val) => {
+        let newData = {...showDetails};
+        newData[key] = val;
+        setShowDetails(newData);
     };
 
     return <tr>
         {
             fields.map((field, i) => (
-                <td onClick={() => setShowDetails(true)} key={i} className={field.conditionalStyling && field.type === 'number' ? (parseFloat(row[field.name]) < 0 ? 'red' : 'green') : ''}>
+                <td onClick={field.details ? (() => setShow(field.name, true)) : undefined} key={i} className={field.conditionalStyling && field.type === 'number' ? (parseFloat(row[field.name]) < 0 ? 'red' : (Math.round(row[field.name]) > 0 ? 'green' : '')) : '' + (field.details ? ' hasDetails' : '')}>
                     {field.type === 'number' ? ((field.parseInt ? parseInt(row[field.name]) : row[field.name]).toFixed(field.toFixed ?? 0)) : (field.type === 'computed' ? field.compute(row[field.name]) : row[field.name])}{field.unit ?? ''}
                     {
                         field.details ? (
-                            <Details show={showDetails} setShow={setShow}>
+                            <Details fieldKey={field.name} show={showDetails[field.name] ?? false} setShow={setShow}>
                                 {field.details.children(field, row, i)}
                             </Details>
                         ) : ''
