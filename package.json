@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "build": "cd client && yarn install && yarn build && cd .."
+    "build": "cd client && echo cded in client && yarn install && echo installed packages... && yarn build && echo built client && cd .. && echo uncded"
   },
   "dependencies": {
     "body-parser": "^1.20.2",
