@@ -60,7 +60,7 @@ table:not(.noStripes) > tbody {
 }
 
 details {
-  overflow-x: scroll;
+  overflow-x: auto;
 }
 
 table, thead, tbody, th, td {
@@ -138,13 +138,13 @@ td.green {
   align-items: center;
   justify-content: center;
   padding: 4rem .25rem;
-  overflow-y: scroll;
+  overflow-y: auto;
 
 
   > div {
     width: 100%;
     max-width: $maxWidth;
-    //overflow-x: scroll;
+    //overflow-x: auto;
     display: flex;
     flex-direction: column;
     td {
@@ -152,11 +152,11 @@ td.green {
     }
 
     tbody {
-      overflow-y: scroll;
+      overflow-y: auto;
     }
 
 
-    overflow-y: scroll;
+    overflow-y: auto;
     //
     //height: 100%;
 
