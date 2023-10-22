@@ -201,6 +201,7 @@ function Nationalrat({vorlage}) {
                                         geburtsjahr: candidate.geburtsjahr,
                                         stimmen: candidate.stimmen,
                                         diff: parseInt(candidate.kandidatNummer.split(".")[1])-candidate.rangInListeInWahlkreis,
+                                        rangInListeInWahlkreis: candidate.rangInListeInWahlkreis,
                                     };
                                 });
                                 return (
@@ -212,6 +213,19 @@ function Nationalrat({vorlage}) {
                                                 label: '#',
                                                 type: 'string',
                                                 defaultDirection: 1,
+                                            },
+                                            {
+                                                name: 'rangInListeInWahlkreis',
+                                                label: 'Rang',
+                                                type: "number",
+                                                defaultDirection: 1,
+                                            },
+                                            {
+                                                name: 'diff',
+                                                label: 'Diff.',
+                                                type: "number",
+                                                defaultDirection: -1,
+                                                conditionalStyling: true,
                                             },
                                             {
                                                 name: 'vorname',
@@ -237,13 +251,6 @@ function Nationalrat({vorlage}) {
                                                 type: "number",
                                                 defaultDirection: -1,
                                             },
-                                            {
-                                                name: 'diff',
-                                                label: 'Differenz',
-                                                type: "number",
-                                                defaultDirection: -1,
-                                                conditionalStyling: true,
-                                            }
                                         ]} />
                                     </>
                                 );

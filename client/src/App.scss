@@ -151,7 +151,8 @@ td.green {
       font-weight: normal;
     }
 
-    button {
+    > button {
+      width: 100%;
       align-items: flex-end;
     }
   }
