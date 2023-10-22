@@ -5,8 +5,7 @@
   "license": "MIT",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "build": "cd client && echo cded in client && yarn install && echo installed packages... && yarn build && echo built client && cd .. && echo uncded"
+    "dev": "nodemon src/index.js"
   },
   "dependencies": {
     "body-parser": "^1.20.2",
