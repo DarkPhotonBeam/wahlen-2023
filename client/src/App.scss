@@ -16,11 +16,13 @@ body {
   padding: 4rem .25rem;
 }
 
+$maxWidth: 120ch;
+
 #root {
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 120ch;
+  max-width: $maxWidth;
 }
 
 table {
@@ -46,8 +48,15 @@ h1, h2, h3, p, details {
 
 }
 
-table:not(.noStripes) tbody tr:nth-child(odd) {
-  background: #222;
+table:not(.noStripes) > tbody {
+
+  > tr:nth-child(odd) {
+    background: #222;
+  }
+
+  > tr:nth-child(even) {
+    //background: #000;
+  }
 }
 
 details {
@@ -115,4 +124,31 @@ td.red {
 
 td.green {
   color: #2aba26;
+}
+
+.details {
+  position: fixed;
+  background: rgba(0, 0, 0, .90);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+
+
+  > div {
+    width: 100%;
+    max-width: $maxWidth;
+    overflow-x: scroll;
+    display: flex;
+    flex-direction: column;
+
+    button {
+      align-items: flex-end;
+    }
+  }
 }

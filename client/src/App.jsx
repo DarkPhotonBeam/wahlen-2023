@@ -183,6 +183,44 @@ function Nationalrat({vorlage}) {
                         label: 'Liste',
                         type: 'string',
                         defaultDirection: 1,
+                        details: {
+                            children: (field, row, i) => {
+                                const parteiNummer = row.listeNummer;
+                                const candidates = vorlage.resultat.kandidaten.filter(candidate => candidate.listeNummer == parteiNummer);
+                                return <SmartTable data={candidates} fields={[
+                                    {
+                                        name: 'kandidatNummer',
+                                        label: '#',
+                                        type: 'string',
+                                        defaultDirection: 1,
+                                    },
+                                    {
+                                        name: 'vorname',
+                                        label: 'Vorname',
+                                        type: "string",
+                                        defaultDirection: 1,
+                                    },
+                                    {
+                                        name: 'nachname',
+                                        label: 'Nachname',
+                                        type: "string",
+                                        defaultDirection: 1,
+                                    },
+                                    {
+                                        name: 'geburtsjahr',
+                                        label: 'Geburtsjahr',
+                                        type: "string",
+                                        defaultDirection: -1,
+                                    },
+                                    {
+                                        name: 'stimmen',
+                                        label: 'Stimmen',
+                                        type: "number",
+                                        defaultDirection: -1,
+                                    }
+                                ]} />;
+                            }
+                        }
                     },
                     {
                         name: 'waehler',
@@ -232,17 +270,41 @@ function Nationalrat({vorlage}) {
                     },
                 ]} />
             </details>
-            <details>
-                <summary>Nicht Ausgezählte Gemeinden {vorlage.gemeinden.filter(gemeinde => !gemeinde.resultat.listenStimmenTotal).length}/{vorlage.gemeinden.length}</summary>
-                <SmartTable data={vorlage.gemeinden.filter(gemeinde => !gemeinde.resultat.listenStimmenTotal)} fields={[
-                    {
-                        name: "geoLevelname",
-                        label: "Gemeinde",
-                        type: 'string',
-                        defaultDirection: 1,
-                    },
-                ]} />
-            </details>
+            {
+                vorlage.gemeinden.filter(gemeinde => !gemeinde.resultat.listenStimmenTotal).length > 0 ? (
+                    <details>
+                        <summary>Nicht Ausgezählte Gemeinden {vorlage.gemeinden.filter(gemeinde => !gemeinde.resultat.listenStimmenTotal).length}/{vorlage.gemeinden.length}</summary>
+                        <SmartTable data={vorlage.gemeinden.filter(gemeinde => !gemeinde.resultat.listenStimmenTotal)} fields={[
+                            {
+                                name: "geoLevelname",
+                                label: "Gemeinde",
+                                type: 'string',
+                                defaultDirection: 1,
+                            },
+                        ]} />
+                    </details>
+                ) : ''
+            }
+        </div>
+    );
+}
+
+function Details({show = false, setShow, children}) {
+    const close = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        setShow(false);
+    };
+
+    if (show === false) return '';
+
+    return (
+        <div onClick={close} className={'details'}>
+
+            <div onClick={e => e.stopPropagation()}>
+                {children}
+                <button onClick={close}>Schliessen</button>
+            </div>
         </div>
     );
 }
@@ -291,18 +353,40 @@ function SmartTable({data, fields, defaultFieldIndex = 0, hideHead = false, noSt
             <tbody>
             {
                 orderedData.map((row, i) => (
-                    <tr key={i}>
-                        {
-                            fields.map((field, i) => (
-                                <td key={i} className={field.conditionalStyling && field.type === 'number' ? (parseFloat(row[field.name]) < 0 ? 'red' : 'green') : ''}>{field.type === 'number' ? ((field.parseInt ? parseInt(row[field.name]) : row[field.name]).toFixed(field.toFixed ?? 0)) : (field.type === 'computed' ? field.compute(row[field.name]) : row[field.name])}{field.unit ?? ''}</td>
-                            ))
-                        }
-                    </tr>
+                    <SmartTableRow row={row} key={i} fields={fields} />
                 ))
             }
             </tbody>
         </table>
     );
+}
+
+function SmartTableRow({row, fields}) {
+    const [showDetails, setShowDetails] = useState(false);
+
+    const setShow = (val) => {
+        console.log("huh" + val);
+        setShowDetails(val);
+        setShowDetails(false);
+        console.log(showDetails);
+    };
+
+    return <tr>
+        {
+            fields.map((field, i) => (
+                <td onClick={() => setShowDetails(true)} key={i} className={field.conditionalStyling && field.type === 'number' ? (parseFloat(row[field.name]) < 0 ? 'red' : 'green') : ''}>
+                    {field.type === 'number' ? ((field.parseInt ? parseInt(row[field.name]) : row[field.name]).toFixed(field.toFixed ?? 0)) : (field.type === 'computed' ? field.compute(row[field.name]) : row[field.name])}{field.unit ?? ''}
+                    {
+                        field.details ? (
+                            <Details show={showDetails} setShow={setShow}>
+                                {field.details.children(field, row, i)}
+                            </Details>
+                        ) : ''
+                    }
+                </td>
+            ))
+        }
+    </tr>;
 }
 
 export default App
