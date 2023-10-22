@@ -46,7 +46,7 @@ h1, h2, h3, p, details {
 
 }
 
-tbody tr:nth-child(odd) {
+table:not(.noStripes) tbody tr:nth-child(odd) {
   background: #222;
 }
 
@@ -76,6 +76,7 @@ tr {
 .summary {
   display: flex;
   width: 100%;
+  align-items: center;
   justify-content: space-between;
 }
 

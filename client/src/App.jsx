@@ -1,5 +1,6 @@
 import {useEffect, useState} from 'react'
 import './App.scss'
+import { Chart } from "react-google-charts";
 
 function App() {
     const [data, setData] = useState(null);
@@ -48,17 +49,36 @@ function Kanton({canton}) {
     );
 }
 
-function Gemeinde() {
-
-}
-
 function Staenderat({vorlage}) {
     return (
         <div>
             <h3>Ständerat</h3>
+            <SmartTable noStripes={true} hideHead={true} data={vorlage.resultat.kandidaten.sort((a, b) => {
+                return b.stimmen - a.stimmen;
+            }).filter((candidate, i) => i < vorlage.anzahlSitze)} fields={[
+                {
+                    name: 'partei',
+                    label: 'Partei',
+                    type: 'computed',
+                    defaultDirection: 1,
+                    compute: (a) => a?.find(b => b.langKey === 'de')?.text ?? 'Unabhängig',
+                },
+                {
+                    name: 'vorname',
+                    label: 'Vorname',
+                    type: 'string',
+                    defaultDirection: 1,
+                },
+                {
+                    name: 'nachname',
+                    label: 'nachname',
+                    type: 'string',
+                    defaultDirection: 1,
+                }
+            ]} />
             <details>
                 <summary>Kandidaten</summary>
-                <SmartTable data={vorlage.resultat.kandidaten} fields={[
+                <SmartTable data={vorlage.resultat.kandidaten} defaultFieldIndex={3} fields={[
                     {
                         name: 'kandidatNummer',
                         label: '#',
@@ -105,12 +125,53 @@ function Staenderat({vorlage}) {
 }
 
 function Nationalrat({vorlage}) {
+    const getChartData = () => {
+        if (vorlage.resultat.hochrechnung) {
+            const parteien = vorlage.resultat.hochrechnung.parteien;
+            const newData = [["Partei", "Sitze"], ...parteien.map(partei => {
+                return [partei.parteiCode, partei.sitze];
+            })];
+            console.log(newData);
+            const oldData = [["Partei", "Sitze"], ...parteien.map(partei => {
+                return [partei.parteiCode, partei.sitze-partei.gewinnSitze];
+            })];
+            return {
+                old: oldData,
+                new: newData,
+            };
+        } else {
+            const listen = vorlage.resultat.listen;
+            let data = listen.filter(liste => liste.waehlerProzent >= 1.5).map(liste => {
+                return [liste.listeCode, liste.waehler];
+            });
+            data = [["Liste", "Wähler"], ...data];
+            return data;
+        }
+    };
+
+    const chartOptions = {
+        backgroundColor: '#000',
+        chartArea: {
+            top: 0,
+            bottom: '40',
+        },
+        fontName: 'Rubik',
+        legend: {
+            textStyle: {
+                color: 'white'
+            }
+        }
+    };
+
     return (
         <div>
             <h3>Nationalrat</h3>
+            <div>
+                <Chart data={vorlage.resultat.hochrechnung ? false : getChartData()} diffdata={vorlage.resultat.hochrechnung ? getChartData() : false} chartType={'PieChart'} options={chartOptions} width={'100%'} height={'400px'} />
+            </div>
             <details>
                 <summary>Listen</summary>
-                <SmartTable data={vorlage.resultat.listen} fields={[
+                <SmartTable data={vorlage.resultat.listen} defaultFieldIndex={2} fields={[
                     {
                         name: 'listeNummer',
                         label: '#',
@@ -128,7 +189,7 @@ function Nationalrat({vorlage}) {
                         label: 'Wähler*innen',
                         type: 'number',
                         defaultDirection: -1,
-                        toFixed: 2,
+                        toFixed: 0,
                     },
                     {
                         name: 'waehlerProzent',
@@ -136,18 +197,11 @@ function Nationalrat({vorlage}) {
                         type: 'number',
                         defaultDirection: -1,
                         toFixed: 2,
-                    }
+                    },
                 ]} />
             </details>
             <details>
                 <summary>Ausgezählte Gemeinden {vorlage.gemeinden.filter(gemeinde => gemeinde.resultat.listenStimmenTotal).length}/{vorlage.gemeinden.length}</summary>
-                {/*<ul className={'gemeinden'}>*/}
-                {/*    {*/}
-                {/*        vorlage.gemeinden.filter(gemeinde => gemeinde.resultat.listenStimmenTotal).map((gemeinde, i) => (*/}
-                {/*            <li key={i}>{gemeinde.geoLevelname}</li>*/}
-                {/*        ))*/}
-                {/*    }*/}
-                {/*</ul>*/}
                 <SmartTable data={vorlage.gemeinden.filter(gemeinde => gemeinde.resultat.listenStimmenTotal).map(gemeinde => {
                     return {
                         name: gemeinde.geoLevelname,
@@ -178,41 +232,25 @@ function Nationalrat({vorlage}) {
                     },
                 ]} />
             </details>
+            <details>
+                <summary>Nicht Ausgezählte Gemeinden {vorlage.gemeinden.filter(gemeinde => !gemeinde.resultat.listenStimmenTotal).length}/{vorlage.gemeinden.length}</summary>
+                <SmartTable data={vorlage.gemeinden.filter(gemeinde => !gemeinde.resultat.listenStimmenTotal)} fields={[
+                    {
+                        name: "geoLevelname",
+                        label: "Gemeinde",
+                        type: 'string',
+                        defaultDirection: 1,
+                    },
+                ]} />
+            </details>
         </div>
     );
 }
 
-function Listen({lists}) {
-    const [_lists, setLists] = useState([]);
-    const [orderBy, setOrderBy] = useState('listeNummer');
-
-    useEffect(() => {
-        const sortedList = [...lists];
-        sortedList.sort((a, b) => {
-            return (a[orderBy]-b[orderBy]) * (orderBy === 'listeNummer' ? 1 : -1);
-        });
-        setLists(sortedList);
-    }, [lists, orderBy]);
-
-    return (
-        <table className={'listen'}>
-            <thead>
-                <tr>
-                    <th className={(orderBy === 'listeNummer' ? 'active' : '') + " clickable"} onClick={() => setOrderBy('listeNummer')}>#</th><th>Listencode</th><th className={(orderBy !== 'listeNummer' ? 'active' : '') + " clickable"} onClick={() => setOrderBy('waehler')}>Wähler*innen</th><th className={(orderBy !== 'listeNummer' ? 'active' : '') + " clickable"} onClick={() => setOrderBy('waehler')}>Wähler*innen-%</th>
-                </tr>
-            </thead>
-            <tbody>
-            {
-                _lists.map(list => <Liste list={list} key={list.listeNummer} />)
-            }
-            </tbody>
-        </table>
-    );
-}
-// field: {label: string, name: string, type: 'number' | 'string', defaultDirection: -1 | 1}
-function SmartTable({data, fields}) {
+// field: {label: string, name: string, type: 'number' | 'string' | 'computed', defaultDirection: -1 | 1}
+function SmartTable({data, fields, defaultFieldIndex = 0, hideHead = true, noStripes = false}) {
     const [orderedData, setOrderedData] = useState([]);
-    const [orderBy, setOrderBy] = useState(fields[0]);
+    const [orderBy, setOrderBy] = useState(fields[defaultFieldIndex]);
 
     useEffect(() => {
         if (orderBy === null) setOrderedData(data);
@@ -223,36 +261,40 @@ function SmartTable({data, fields}) {
             });
         } else {
             _data.sort((a, b) => {
-                const A = a[orderBy.name];
-                const B = b[orderBy.name];
+                const A = orderBy.type === 'computed' ? orderBy.compute(a[orderBy.name]) : a[orderBy.name];
+                const B = orderBy.type === 'computed' ? orderBy.compute(b[orderBy.name]) : b[orderBy.name];
                 if (A === B) return 0;
                 if (A > B) return orderBy.defaultDirection;
                 return orderBy.defaultDirection * -1;
             });
         }
-        console.log(_data);
+        //console.log(_data);
         setOrderedData(_data);
     }, [data, fields, orderBy]);
 
 
     return (
-        <table>
-            <thead>
-                <tr>
-                    {
-                        fields.map((field, i) => (
-                            <th className={`clickable ${field.name === orderBy.name ? 'active' : ''}`} onClick={() => setOrderBy(field)} key={i}>{field.label}</th>
-                        ))
-                    }
-                </tr>
-            </thead>
+        <table className={noStripes ? 'noStripes' : ''}>
+            {
+                !hideHead ? (
+                    <thead>
+                    <tr>
+                        {
+                            fields.map((field, i) => (
+                                <th className={fields.length > 1 ? `clickable ${field.label === orderBy.label ? 'active' : ''}` : ''} onClick={() => setOrderBy(field)} key={i}>{field.label}</th>
+                            ))
+                        }
+                    </tr>
+                    </thead>
+                ) : ''
+            }
             <tbody>
             {
                 orderedData.map((row, i) => (
                     <tr key={i}>
                         {
                             fields.map((field, i) => (
-                                <td key={i} className={field.conditionalStyling && field.type === 'number' ? (parseFloat(row[field.name]) < 0 ? 'red' : 'green') : ''}>{field.type === 'number' ? ((field.parseInt ? parseInt(row[field.name]) : row[field.name]).toFixed(field.toFixed ?? 0)) : row[field.name]}{field.unit ?? ''}</td>
+                                <td key={i} className={field.conditionalStyling && field.type === 'number' ? (parseFloat(row[field.name]) < 0 ? 'red' : 'green') : ''}>{field.type === 'number' ? ((field.parseInt ? parseInt(row[field.name]) : row[field.name]).toFixed(field.toFixed ?? 0)) : (field.type === 'computed' ? field.compute(row[field.name]) : row[field.name])}{field.unit ?? ''}</td>
                             ))
                         }
                     </tr>
@@ -260,14 +302,6 @@ function SmartTable({data, fields}) {
             }
             </tbody>
         </table>
-    );
-}
-
-function Liste({list}) {
-    return (
-        <tr>
-            <td>{list.listeNummer}</td><td>{list.listeCode}</td><td>{list.waehler.toFixed(0)}</td><td>{list.waehlerProzent.toFixed(2)}</td>
-        </tr>
     );
 }
 
