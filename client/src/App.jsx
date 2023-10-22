@@ -126,12 +126,25 @@ function Staenderat({vorlage}) {
 
 function Nationalrat({vorlage}) {
     const getChartData = () => {
-        if (vorlage.resultat.hochrechnung) {
+        if (vorlage.vorlageBeendet) {
+            const parteien = vorlage.resultat.parteien;
+            const newData = [["Partei", "Sitze"], ...parteien.map(partei => {
+                return [partei.parteiCode, partei.sitze];
+            })];
+            //console.log(newData);
+            const oldData = [["Partei", "Sitze"], ...parteien.map(partei => {
+                return [partei.parteiCode, partei.letzteWahlSitze];
+            })];
+            return {
+                old: oldData,
+                new: newData,
+            };
+        } else if (vorlage.resultat.hochrechnung) {
             const parteien = vorlage.resultat.hochrechnung.parteien;
             const newData = [["Partei", "Sitze"], ...parteien.map(partei => {
                 return [partei.parteiCode, partei.sitze];
             })];
-            console.log(newData);
+            //console.log(newData);
             const oldData = [["Partei", "Sitze"], ...parteien.map(partei => {
                 return [partei.parteiCode, partei.sitze-partei.gewinnSitze];
             })];
@@ -167,7 +180,7 @@ function Nationalrat({vorlage}) {
         <div>
             <h3>Nationalrat</h3>
             <div>
-                <Chart data={vorlage.resultat.hochrechnung ? false : getChartData()} diffdata={vorlage.resultat.hochrechnung ? getChartData() : false} chartType={'PieChart'} options={chartOptions} width={'100%'} height={'400px'} />
+                <Chart data={vorlage.resultat.hochrechnung || vorlage.vorlageBeendet ? false : getChartData()} diffdata={vorlage.resultat.hochrechnung || vorlage.vorlageBeendet ? getChartData() : false} chartType={'PieChart'} options={chartOptions} width={'100%'} height={'400px'} />
             </div>
             <details>
                 <summary>Listen</summary>
@@ -207,51 +220,53 @@ function Nationalrat({vorlage}) {
                                 return (
                                     <>
                                         <h1>Liste {parteiNummer} - {parteiName}</h1>
-                                        <SmartTable data={candidates} fields={[
-                                            {
-                                                name: 'kandidatNummer',
-                                                label: '#',
-                                                type: 'string',
-                                                defaultDirection: 1,
-                                            },
-                                            {
-                                                name: 'rangInListeInWahlkreis',
-                                                label: 'Rang',
-                                                type: "number",
-                                                defaultDirection: 1,
-                                            },
-                                            {
-                                                name: 'diff',
-                                                label: 'Diff.',
-                                                type: "number",
-                                                defaultDirection: -1,
-                                                conditionalStyling: true,
-                                            },
-                                            {
-                                                name: 'vorname',
-                                                label: 'Vorname',
-                                                type: "string",
-                                                defaultDirection: 1,
-                                            },
-                                            {
-                                                name: 'nachname',
-                                                label: 'Nachname',
-                                                type: "string",
-                                                defaultDirection: 1,
-                                            },
-                                            {
-                                                name: 'geburtsjahr',
-                                                label: 'Geburtsjahr',
-                                                type: "string",
-                                                defaultDirection: -1,
-                                            },
-                                            {
-                                                name: 'stimmen',
-                                                label: 'Stimmen',
-                                                type: "number",
-                                                defaultDirection: -1,
-                                            },
-                                        ]} />
+                                        <div style={{overflowX: 'scroll'}}>
+                                            <SmartTable data={candidates} fields={[
+                                                {
+                                                    name: 'kandidatNummer',
+                                                    label: '#',
+                                                    type: 'string',
+                                                    defaultDirection: 1,
+                                                },
+                                                {
+                                                    name: 'rangInListeInWahlkreis',
+                                                    label: 'Rang',
+                                                    type: "number",
+                                                    defaultDirection: 1,
+                                                },
+                                                {
+                                                    name: 'diff',
+                                                    label: 'Diff.',
+                                                    type: "number",
+                                                    defaultDirection: -1,
+                                                    conditionalStyling: true,
+                                                },
+                                                {
+                                                    name: 'vorname',
+                                                    label: 'Vorname',
+                                                    type: "string",
+                                                    defaultDirection: 1,
+                                                },
+                                                {
+                                                    name: 'nachname',
+                                                    label: 'Nachname',
+                                                    type: "string",
+                                                    defaultDirection: 1,
+                                                },
+                                                {
+                                                    name: 'geburtsjahr',
+                                                    label: 'Geburtsjahr',
+                                                    type: "string",
+                                                    defaultDirection: -1,
+                                                },
+                                                {
+                                                    name: 'stimmen',
+                                                    label: 'Stimmen',
+                                                    type: "number",
+                                                    defaultDirection: -1,
+                                                },
+                                            ]} />
+                                        </div>
                                     </>
                                 );
                             }

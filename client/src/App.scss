@@ -144,12 +144,21 @@ td.green {
   > div {
     width: 100%;
     max-width: $maxWidth;
-    overflow-x: scroll;
+    //overflow-x: scroll;
     display: flex;
     flex-direction: column;
     td {
       font-weight: normal;
     }
+
+    tbody {
+      overflow-y: scroll;
+    }
+
+
+    overflow-y: scroll;
+    //
+    //height: 100%;
 
     > button {
       width: 100%;
