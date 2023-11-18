@@ -35,6 +35,19 @@ app.get('/api/robing', (req, res) => {
     }
 });
 
+app.get('/api/wahlen-2023-11-19', (req, res) => {
+    try {
+        const data = JSON.parse(fs.readFileSync(path.resolve(path.join(__dirname, '..', 'data', 'data2.json')), 'utf8'));
+        res.json(data);
+    } catch (e) {
+        res.json({
+            status: 'fail',
+            message: 'rip bozo',
+            fail: true,
+        });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server started listening on port ${PORT}.`);
 });
